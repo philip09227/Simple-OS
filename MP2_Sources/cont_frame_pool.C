@@ -360,8 +360,8 @@ void ContFramePool::release_frames(unsigned long _first_frame_no)
     unsigned char checker_head = 0x40 >>(((_first_frame_no - current->base_frame_no)%4)*2);
     unsigned char checker_reset = 0xc0 >> (((_first_frame_no - current->base_frame_no)%4*2));
     unsigned char checker_allocated = 0xc0;
-    unsigned int rest;
     unsigned long next_frame_no;
+    unsigned int release_frame_amount=0;
     
 
     // checke whether the input is head of sequence : 01 ( it should be )
@@ -372,12 +372,41 @@ void ContFramePool::release_frames(unsigned long _first_frame_no)
 	 //reset to free 
 	 current->bitmap[bitmap_index] = current->bitmap[bitmap_index] &(~checker_reset) | 0x0;
 	 Console::puts("After reset the value of head is ( should be 0) "); Console::puti(current->bitmap[bitmap_index]); Console::puts("\n");
+	 release_frame_amount++;
 
     }
     // deal with the rest of frames which value should be 11 (allocated right now )
     
     next_frame_no = _first_frame_no+1;
-    current->nFreeFrames++;
+   
+    for (next_frame_no; next_frame_no < (current->n_frames/4); next_frame_no++)
+    {
+	    // get the index in bitmap for current frame 
+	    bitmap_index = ((next_frame_no - current->base_frame_no)/4);
+	    checker_allocated = 0xc0 >> (((next_frame_no - current->base_frame_no)%4)*2);
+	    checker_head = 0x40 >> (((next_frame_no - current->base_frame_no)%4)*2);
+            checker_reset = 0xc0 >> (((next_frame_no - current->base_frame_no)%4)*2);
+            if ( (current->bitmap[bitmap_index] & checker_reset ) == checker_head)
+	    {
+
+	        // reach another head
+	        break;
+	    }
+	    if ((current->bitmap[bitmap_index] & checker_reset ) == 0)
+	    {
+	       // reach free
+	       break;
+            }
+	    if  ((current->bitmap[bitmap_index] & checker_reset ) == checker_allocated)
+	    { 
+	       current->bitmap[bitmap_index] = current->bitmap[bitmap_index]&(~checker_reset);
+               release_frame_amount++;
+	       }
+
+    }
+
+/*
+
     rest = ( (_first_frame_no+1) - current->base_frame_no)/4;
     while (rest < (current->n_frames/4))	    
     {
@@ -398,8 +427,13 @@ void ContFramePool::release_frames(unsigned long _first_frame_no)
 	    }
 	    next_frame_no++;
 
-    }
-    current->nFreeFrames += current->n_frames -1;
+    }*/
+    Console::puts( " This time the number of frames we relase  is : "); Console::puti(release_frame_amount);
+    Console::puts("\n");
+    current->nFreeFrames += release_frame_amount;
+    Console::puts( " Now the total free frames are "); Console::puti(current->nFreeFrames);
+    Console::puts("\n");
+
 }
     
 
