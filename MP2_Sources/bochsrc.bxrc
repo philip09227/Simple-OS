@@ -12,7 +12,9 @@ vgaromimage: file=VGABIOS-lgpl-latest
 # what disk images will be used 
 floppya: 1_44=dev_kernel_grub.img, status=inserted
 #floppyb: 1_44=floppyb.img, status=inserted
-gdbstub: enabled=1, port=1234, text_base = 0,data_base=0,bss_base=0
+
+#gdbstub: enabled=1, port=1234, text_base = 0,data_base=0,bss_base=0
+
 # hard disk
 #ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
 #ata0-master: type=disk, path="c.img", cylinders=306, heads=4, spt=17
@@ -27,11 +29,11 @@ boot: floppy
 # other choices: win32 sdl wx carbon amigaos beos macintosh nogui rfb term svga
 
 # where do we send log messages?
-log: bochsout.txt
+#log: bochsout.txt
 
 port_e9_hack: enabled=1
 
-debugger_log:/home/csce410/Documents/MP2/MP2/MP2_Sources/log.txt
+#debugger_log:/home/csce410/Documents/MP2/MP2/MP2_Sources/log.txt
 
 # disable the mouse
 mouse: enabled=0
