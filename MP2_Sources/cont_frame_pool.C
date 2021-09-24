@@ -299,11 +299,12 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames)
 	    //  get the index of next frame in bitmap
 	    bitmap_index = ((rest - base_frame_no)/4);
 	    checker_reset = 0xc0 >> ((rest%4)*2);
-	    checker_allocated = 0xc0 >> ((rest)%4*2);
+	    checker_allocated = 0xc0 >> ((rest%4)*2);
             Console::puts("the index for the rest frame in bitmap is  "); Console::puti(bitmap_index); Console::puts("\n"); 
 
             // set the status to 11
-	    bitmap[bitmap_index] = ((bitmap[bitmap_index] & (~checker_reset)) | checker_allocated);
+	    Console::puts("Before set the status of this rest frame index in bitmap is ( should be 11) "); Console::puti(bitmap[bitmap_index]); Console::puts("\n");
+	    bitmap[bitmap_index] = (bitmap[bitmap_index] | checker_allocated);
             Console::puts("After set the status of this rest frame index in bitmap is ( should be 11) "); Console::puti(bitmap[bitmap_index]); Console::puts("\n"); 
 	    
     }
@@ -357,21 +358,21 @@ void ContFramePool::release_frames(unsigned long _first_frame_no)
     // check if frame is head of sequence 
     // the get the index of head frame  in bitmap
     unsigned int bitmap_index = (_first_frame_no - current->base_frame_no)/4;
-    unsigned char checker_head = 0x40 >>(((_first_frame_no - current->base_frame_no)%4)*2);
+    unsigned char checker_head = 0x80 >>(((_first_frame_no - current->base_frame_no)%4)*2);
     unsigned char checker_reset = 0xc0 >> (((_first_frame_no - current->base_frame_no)%4*2));
     unsigned char checker_allocated = 0xc0;
     unsigned long next_frame_no;
     unsigned int release_frame_amount=0;
-    
+    unsigned int rest;    
 
     // checke whether the input is head of sequence : 01 ( it should be )
-    if (((current->bitmap[bitmap_index] & checker_reset)^checker_head)==0)
+    if (((current->bitmap[bitmap_index] ^checker_head)&checker_reset)==checker_reset)
     {
-         Console::puts("the index of input first fram in bitmap is "); Console::puti(bitmap_index); Console::puts("\n");
-         Console::puts("the input of first frame is head it's value int bitmap is "); Console::puti(current->bitmap[bitmap_index]); Console::puts("\n");
+         //Console::puts("the index of input first fram in bitmap is "); Console::puti(bitmap_index); Console::puts("\n");
+         //Console::puts("the input of first frame is head it's value int bitmap is "); Console::puti(current->bitmap[bitmap_index]); Console::puts("\n");
 	 //reset to free 
-	 current->bitmap[bitmap_index] = current->bitmap[bitmap_index] &(~checker_reset) | 0x0;
-	 Console::puts("After reset the value of head is ( should be 0) "); Console::puti(current->bitmap[bitmap_index]); Console::puts("\n");
+	 current->bitmap[bitmap_index] = current->bitmap[bitmap_index] &(~checker_reset) ;
+	 //Console::puts("After reset the value of head is ( should be 0) "); Console::puti(current->bitmap[bitmap_index]); Console::puts("\n");
 	 release_frame_amount++;
 
     }
@@ -379,7 +380,7 @@ void ContFramePool::release_frames(unsigned long _first_frame_no)
     
     next_frame_no = _first_frame_no+1;
    
-    for (next_frame_no; next_frame_no < (current->n_frames/4); next_frame_no++)
+   /* for (next_frame_no; next_frame_no < (current->n_frames/4); next_frame_no++)
     {
 	    // get the index in bitmap for current frame 
 	    bitmap_index = ((next_frame_no - current->base_frame_no)/4);
@@ -403,11 +404,11 @@ void ContFramePool::release_frames(unsigned long _first_frame_no)
                release_frame_amount++;
 	       }
 
-    }
+    }*/
 
-/*
 
-    rest = ( (_first_frame_no+1) - current->base_frame_no)/4;
+
+    rest = ( next_frame_no - current->base_frame_no)/4;
     while (rest < (current->n_frames/4))	    
     {
 	   // Console::puts("current rest is : "); Console::puti(rest); Console::puts("\n");
@@ -420,18 +421,22 @@ void ContFramePool::release_frames(unsigned long _first_frame_no)
 		    //Console::puts("the reset is allocated"); Console::puti(current->bitmap[rest]); Console::puts("\n");
 		    current->bitmap[bitmap_index] = current->bitmap[bitmap_index] &(~checker_reset);
                     //Console::puts("after the reset allocated should be 0"); Console::puti(current->bitmap[bitmap_index]); Console::puts("\n");
+		    release_frame_amount++;
 	    }
 	    else
 	    {
+		    Console::puts("Now it's not allocated or another head we out : frames we now release are"); 
+		    Console::puti(release_frame_amount);
+		    Console::puts("\n");
 		    break;
 	    }
 	    next_frame_no++;
 
-    }*/
-    Console::puts( " This time the number of frames we relase  is : "); Console::puti(release_frame_amount);
+    }
+    //Console::puts( " This time the number of frames we relase  is : "); Console::puti(release_frame_amount);
     Console::puts("\n");
     current->nFreeFrames += release_frame_amount;
-    Console::puts( " Now the total free frames are "); Console::puti(current->nFreeFrames);
+   // Console::puts( " Now the total free frames are "); Console::puti(current->nFreeFrames);
     Console::puts("\n");
 
 }
