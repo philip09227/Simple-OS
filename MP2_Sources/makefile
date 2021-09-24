@@ -4,7 +4,7 @@ LD=i386-elf-ld
 
 GCC_OPTIONS = -m32 -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -fno-stack-protector -fleading-underscore -fno-asynchronous-unwind-tables
 
-all: kernel
+all: kernel.bin
 
 clean:
 	rm -f *.o *.bin
@@ -42,8 +42,8 @@ cont_frame_pool.o: cont_frame_pool.C cont_frame_pool.H
 kernel.o: kernel.C console.H 
 	$(GCC) $(GCC_OPTIONS) -g -c -o kernel.o kernel.C
 
-kernel: start.o utils.o kernel.o assert.o console.o \
+kernel.bin: start.o utils.o kernel.o assert.o console.o \
    cont_frame_pool.o machine.o machine_low.o  
-	$(LD) -melf_i386 -T linker.ld -o kernel  start.o utils.o \
+	$(LD) -melf_i386 -T linker.ld -o kernel.bin  start.o utils.o \
    kernel.o assert.o console.o \
    cont_frame_pool.o  machine.o machine_low.o 
