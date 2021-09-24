@@ -112,14 +112,9 @@ void test_memory(ContFramePool * _pool, unsigned int _allocs_to_go) {
     if (_allocs_to_go > 0) {
         int n_frames = _allocs_to_go % 4 + 1;
         unsigned long frame = _pool->get_frames(n_frames);
-	Console::puts( "****total frames = "); Console::puti(n_frames); Console::puts("\n");
-	Console::puts( " **** first frame = "); Console::puti(frame); Console::puts("\n");
         int * value_array = (int*)(frame * (4 KB));        
         for (int i = 0; i < (1 KB) * n_frames; i++) {
             value_array[i] = _allocs_to_go;
-	   // Console::puts( " kernel i ="); Console::puti(i); Console::puts("\n");
-	   // Console::puts( " value_array[i]  ="); Console::puti(value_array[i]); Console::puts("\n");
-            //Console::puts( " allocate to go : "); Console::puti(_allocs_to_go); Console::puts("\n");
 
         }
         test_memory(_pool, _allocs_to_go - 1);

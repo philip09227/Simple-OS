@@ -53,8 +53,13 @@ private:
     ContFramePool* next;
 public:
 
+
+
+
     // The frame size is the same as the page size, duh...    
     static const unsigned int FRAME_SIZE = Machine::PAGE_SIZE; 
+
+    
     // FRAMESIZE =4096
     ContFramePool(unsigned long _base_frame_no,
                   unsigned long _n_frames,
@@ -123,5 +128,9 @@ public:
      Other implementations need a different number of info frames.
      The exact number is computed in this function..
      */
+
+    unsigned char get_state( unsigned int frame_no);
+
+    void set_state(unsigned int frame_no, unsigned char state);
 };
 #endif
