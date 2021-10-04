@@ -4,7 +4,7 @@ LD=i386-elf-ld
 
 GCC_OPTIONS = -m32 -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -fno-stack-protector -fleading-underscore -fno-asynchronous-unwind-tables
 
-all: kernel
+all: kernel.bin
 
 clean:
 	rm -f *.o *.bin
@@ -72,10 +72,10 @@ kernel.o: kernel.C console.H simple_timer.H page_table.H
 	$(GCC) $(GCC_OPTIONS) -g -c -o kernel.o kernel.C
 
 
-kernel: start.o utils.o kernel.o assert.o console.o gdt.o idt.o irq.o exceptions.o \
+kernel.bin: start.o utils.o kernel.o assert.o console.o gdt.o idt.o irq.o exceptions.o \
    interrupts.o simple_timer.o simple_keyboard.o paging_low.o page_table.o cont_frame_pool.o machine.o \
    machine_low.o 
-	$(LD) -melf_i386 -T linker.ld -o kernel start.o utils.o kernel.o assert.o console.o \
+	$(LD) -melf_i386 -T linker.ld -o kernel.bin start.o utils.o kernel.o assert.o console.o \
    gdt.o idt.o irq.o exceptions.o \
    interrupts.o simple_timer.o simple_keyboard.o paging_low.o page_table.o cont_frame_pool.o machine.o \
    machine_low.o

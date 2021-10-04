@@ -272,8 +272,6 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames)
     }
 
     nFreeFrames -= _n_frames;
-    Console::puts(" total free frame we have right now is : " ); Console::puti(nFreeFrames);Console::puts("\n");
-    Console::puts("return value of first frame is ") ; Console::puti(first_frame_no); Console::puts("\n");
     Console::puts("get frames done" ); Console::puts("\n");
     return (first_frame_no);
  
@@ -295,7 +293,6 @@ void ContFramePool::release_frames(unsigned long _first_frame_no)
     unsigned int release_frame_amount=0;
     // need to check this frame pool possess the frame we want to release
     ContFramePool* current = ContFramePool::node_head;
-    Console::puts("Entry release : the head frame want to release is ");Console::puti(_first_frame_no); Console::puts("\n");
     while (( current->base_frame_no > _first_frame_no) || ( _first_frame_no >= current->base_frame_no + current->n_frames))
     {
 	    if(current->next ==NULL)
@@ -330,12 +327,8 @@ void ContFramePool::release_frames(unsigned long _first_frame_no)
 	   frame_no++;
     } 
   
-    Console::puts( " This time the number of frames we relase  is : "); Console::puti(release_frame_amount);
-    Console::puts("\n");
     current->nFreeFrames += release_frame_amount;
-    Console::puts( " Now the total free frames are "); Console::puti(current->nFreeFrames);
-    Console::puts("\n");
-
+    Console::puts("release frame done \n");
 }
     
 

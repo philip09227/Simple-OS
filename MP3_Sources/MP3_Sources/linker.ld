@@ -1,4 +1,4 @@
-
+OUTPUT_FORMAT("binary")
 ENTRY(start)
 phys = 0x00100000;
 SECTIONS
@@ -24,6 +24,7 @@ SECTIONS
     *(.gnu.linkonce.d.*)
     . = ALIGN(4096);
   }
+
   .bss : AT(phys + (bss - code))
   {
     bss = .;

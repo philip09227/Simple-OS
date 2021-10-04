@@ -18,7 +18,7 @@ floppya: 1_44=dev_kernel_grub.img, status=inserted
 #ata0-master: type=disk, path="c.img", cylinders=306, heads=4, spt=17
 # choose the boot disk.
 boot: floppy
-gdbstub: enabled =1, port=1234,text_base=0,data_base=0,bss_base=0
+#gdbstub: enabled =1, port=1234,text_base=0,data_base=0,bss_base=0
 # default config interface is textconfig.
 #config_interface: textconfig
 #config_interface: wx
