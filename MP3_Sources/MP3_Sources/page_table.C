@@ -41,16 +41,14 @@ PageTable::PageTable()
 	   page_table_page[i] = address|3;
 	   address+=4096;
    }
-   Console::puts("page_table_page  is : "); Console::puti(page_table_page[1]);Console::puts("\n");
    //point the first entry in page directory to page table page  
    page_directory[0] = (unsigned long) page_table_page;
-   Console::puts("page_directory is : "); Console::puti(page_directory[0]);Console::puts("\n");
    page_directory[0] = page_directory[0] | 3;
    
    //initialize the rest of page directory
    for(int i = 1; i< shared_frames; i++)
    {
-	   page_directory[i] = 0;
+	   page_directory[i] = 0|2;
 
    }
    Console::puts("Constructed Page Table object\n");
@@ -70,7 +68,7 @@ void PageTable::load()
 
 void PageTable::enable_paging()
 {
-
+   // set the paging bit in cr0 to 1
    write_cr0(read_cr0()|0x80000000);
    paging_enabled = 1;
    Console::puts("Enabled paging\n");
@@ -80,34 +78,35 @@ void PageTable::handle_fault(REGS * _r)
 {
   // if cpu reference a page page number is 0 then page fault occur
   // called when access a page is not a frame associated it's in valid 
-  unsigned long* page_directory = (unsigned long *) read_cr3(); //what address cause page fault
-  // page direntory entry
-  unsigned long page_directory_index = read_cr2() >>22;
-  unsigned long page_table_page_index;
-  unsigned long *page_table_page;
-  unsigned long *page_table_page_address;
-  unsigned long page_entry;
-  unsigned long *page;
-  unsigned long error_code = _r->err_code;
-
-  if ( error_code & 0xFFFFFFFE)
+  unsigned long* current_page_directory = (unsigned long *) read_cr3(); // the address of page directory
+  unsigned long current_page_fault_address = read_cr2(); // the address which causes page fault 
+  unsigned long current_page_directory_index = current_page_fault_address  >> 22; // first 10 bits represent the index of page directory 
+  unsigned long current_page_table_page_index; // index of entry in page table page 
+  unsigned long *current_page_table_page_address; // address of current page table page 
+  unsigned long *new_page_table_page; // pointer of new  page table page for fault directory 
+  unsigned long *new_pte; // new page table entry for fault page table 
+  unsigned long exc_no = _r->int_no;
+   
+  if ( exc_no == 14)// page fault exception
   {
-	  if ((page_directory[page_directory_index] &0x1)==0) // page fault occurs because page directory
+	  // page fault occurs beacuse page directory invalid
+          if (( current_page_directory[current_page_directory_index] & 1)==0) // page fault occurs because page directory
 	  {
-                  Console::puts("page fault occur at directory"); 
-		  page_table_page = (unsigned long *) ((kernel_mem_pool->get_frames(1))*PAGE_SIZE); // create a new page table page  
-
-	          page_directory[page_directory_index]=((unsigned long) page_table_page)|0x3; // point the entry of page directory to page table page
+                  Console::puts("page fault occurs at directory need to creat a new page table page for this entry\n"); 
+		  new_page_table_page = (unsigned long *) ((kernel_mem_pool->get_frames(1))*PAGE_SIZE); // create a new page table page  
+	          current_page_directory[current_page_directory_index] = ((unsigned long) new_page_table_page)|3; // point the entry of page directory to page table page
  	  }
-	  //get the first 20 bits
-	  page_table_page_address = ((unsigned long *) (page_directory[page_directory_index] &0xffffff000));
-	  //get the last 10 bits 
-	  page_table_page_index = ((read_cr2()>>12) & 0x3ff);
-	  if ((page_table_page_address[page_table_page_index]&0x1)==0)
+	  // page fault occurs because page table page entry  invalide 
+	  //get the first 20 bits of page directory entry which is the address of page table page 
+	  current_page_table_page_address = (unsigned long *) ((current_page_directory[current_page_directory_index]>>12) << 12);
+	  //get the middle  10 bits  which represent the index in the current page table page 
+	  current_page_table_page_index = ((read_cr2()& 0x3ff000) >>12);
+	  if ((current_page_table_page_address[current_page_table_page_index]& 1)==0)
 	  {
-	          Console::puts("page fault occur at page table ");
-		  page = (unsigned long *) ((process_mem_pool ->get_frames(1))* PAGE_SIZE);
-                  page_table_page_address[page_table_page_index]=((unsigned long) page)|0x3;
+	          Console::puts("page fault occur at page table\n ");
+		  //reference a frame for this page table page entry
+		  new_pte = (unsigned long *) ((process_mem_pool ->get_frames(1))* PAGE_SIZE);
+                  current_page_table_page_address[current_page_table_page_index]=((unsigned long) new_pte)|3;
 	  }
 
   }
