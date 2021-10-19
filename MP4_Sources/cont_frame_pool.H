@@ -42,12 +42,25 @@ class ContFramePool {
     
 private:
     /* -- DEFINE YOUR CONT FRAME POOL DATA STRUCTURE(s) HERE. */
-    
+    unsigned char * bitmap;
+    unsigned int nFreeFrames;
+    unsigned long base_frame_no;
+    unsigned long n_frames;
+    unsigned long info_frame_no;
+    unsigned long n_info_frames;
+    static ContFramePool* node_head;
+    static ContFramePool* list;
+    ContFramePool* next;
 public:
+
+
+
 
     // The frame size is the same as the page size, duh...    
     static const unsigned int FRAME_SIZE = Machine::PAGE_SIZE; 
 
+    
+    // FRAMESIZE =4096
     ContFramePool(unsigned long _base_frame_no,
                   unsigned long _n_frames,
                   unsigned long _info_frame_no,
@@ -57,13 +70,13 @@ public:
      frame pool.
      _base_frame_no: Number of first frame managed by this frame pool.
      _n_frames: Size, in frames, of this frame pool.
-     EXAMPLE: If _base_frame_no is 16 and _nframes is 4, this frame pool manages
+     EXAMPLE: If _base_frame_no is 16 and _n_frames is 4, this frame pool manages
      physical frames numbered 16, 17, 18 and 19.
      _info_frame_no: Number of the first frame that should be used to store the
      management information for the frame pool.
      NOTE: If _info_frame_no is 0, the frame pool is free to
      choose any frames from the pool to store management information.
-     _n_info_frames: If _info_frame_no is 0, this argument specifies the
+     _n_info_frames: If _info_frame_no is NOT 0, this argument specifies the
      number of consecutive frames needed to store the management information
      for the frame pool.
      EXAMPLE: If _info_frame_no is 699 and _n_info_frames is 3,
@@ -115,5 +128,9 @@ public:
      Other implementations need a different number of info frames.
      The exact number is computed in this function..
      */
+
+    unsigned char get_state( unsigned int frame_no);
+
+    void set_state(unsigned int frame_no, unsigned char state);
 };
 #endif

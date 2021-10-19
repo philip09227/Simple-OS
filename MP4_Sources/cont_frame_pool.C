@@ -127,36 +127,215 @@
 /* METHODS FOR CLASS   C o n t F r a m e P o o l */
 /*--------------------------------------------------------------------------*/
 
+
+ContFramePool* ContFramePool::node_head;
+ContFramePool* ContFramePool::list;
+
+
 ContFramePool::ContFramePool(unsigned long _base_frame_no,
-                             unsigned long _nframes,
+                             unsigned long _n_frames,
                              unsigned long _info_frame_no,
                              unsigned long _n_info_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+   
+    // bitmap can fit in one single frame
+    assert(_n_frames <= FRAME_SIZE *4);
+
+    base_frame_no = _base_frame_no; // the id of the first frame, in kernel first frame is 512nd frame
+    n_frames = _n_frames; // how many frames in this pool,  2^9 frames for kernel pool
+    nFreeFrames = _n_frames; 
+    info_frame_no = _info_frame_no;
+    n_info_frames = _n_info_frames;
+    
+
+    // bitmap is a array and it used as a indicator of address
+    // if info_fram =0 means management information store in this frame
+    // we use first frame in this poll to store information
+    // and set the bitmap(address) to the address of first frame
+    // aka. " Frame Number * Frame Size" frame number== base_frame
+    // this time bitmap should be at 2MB  200000(hex) 
+    if (info_frame_no == 0){
+	    bitmap = (unsigned char *) ( base_frame_no * FRAME_SIZE);
+
+    }else{
+	    bitmap = (unsigned char *) (info_frame_no * FRAME_SIZE); 
+	    // if not in the first frame set address to the current frame
+	    // which contain the information 
+	                                                          
+    }
+    
+    //make sure each cell has four bit
+    assert((n_frames %4) == 0);
+    
+    
+
+    // status of frames
+    // 00 means free
+    // 01 means head
+    // 10 meand in accessible
+    // 11 means allocated 
+    // inititalize all frame to free 
+    // In Kernel frame pool there's 512 frames
+    // Thus the loop will so 128 times to make each one is free 
+    for (int i =0; i*4 < n_frames; i++){
+	    bitmap[i] = 0x0;
+    }
+    
+    // set first frame in fram pool to be head  
+    if(info_frame_no==0){
+	    bitmap[0] = 0x40;  //which is 01 for the first two bit 
+	    nFreeFrames--;    // decrease the number of totoal number of free frame 
+    }
+
+    // if list has not been declared
+    if ( ContFramePool::node_head == NULL)
+    {
+	    ContFramePool::node_head = this;
+	    ContFramePool::list = this;
+    }
+    else
+    {
+	    ContFramePool::list->next = this;
+	    ContFramePool::list = this;
+    }
+    next = NULL;
+
+
+
+    Console::puts("Frame Pool initialized\n");
 }
+
+
+unsigned char ContFramePool::get_state( unsigned int frame_no)
+{
+	// in which array total will be 128 
+	unsigned int index = (frame_no-base_frame_no)/4;
+	// which 2 bits we need to checke in this bitmap[i]
+	// it also was the how many times the mask  should shift
+	unsigned int shift = 6-(((frame_no-base_frame_no)%4)*2);
+	unsigned int offset = (((frame_no-base_frame_no)%4)*2);
+	unsigned char mask = 0xc0 >> offset;
+        return (bitmap[index] & mask) >> shift;
+        
+}
+
+void ContFramePool::set_state( unsigned int frame_no , unsigned char state)
+{
+	unsigned int index = ( frame_no - base_frame_no)/4;
+	unsigned int shift = 6-(((frame_no -base_frame_no)%4)*2);
+	unsigned int offset = (((frame_no-base_frame_no)%4)*2);
+	unsigned char mask = 0xc0 >> offset;
+	state = state << shift;
+	bitmap[index] = (bitmap[index] & (~mask))| state;
+}
+
+
 
 unsigned long ContFramePool::get_frames(unsigned int _n_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    
+    // Make sure we still have frames to allocated 
+    assert(nFreeFrames >0);
+    
+    // first number of frame pool
+    unsigned long first_frame_no = 0;
+    unsigned long last_frame_no = 0;
+    unsigned int i = base_frame_no;
+    unsigned int j = 0;
+    unsigned int frames_needed = _n_frames;
+    unsigned int count =0;
+    // use frame number to traverse  from first frame to last frames 
+    while ((i < (base_frame_no+n_frames)) && (count < frames_needed))    
+    {
+	    
+	    if (this->get_state(i) == 0x0)
+	    {
+		    count++;
+	    }
+	    //reset count if count < frame we want and there's a frame is not free
+	    else
+	    {
+		    count = 0;
+	    }
+	    i++;
+    
+    }
+
+    last_frame_no = i -1;
+    first_frame_no = i - frames_needed;
+    // set the head of sequence to head 01 
+    this->set_state(first_frame_no,0x1);
+    // set the rest of sequence to allocated 11
+    for( j =first_frame_no+1 ; j < i; j++)
+    {
+	    this->set_state(j,0x3);
+    }
+
+    nFreeFrames -= _n_frames;
+    Console::puts("get frames done" ); Console::puts("\n");
+    return (first_frame_no);
+ 
 }
 
 void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
                                       unsigned long _n_frames)
-{
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+{  
+    for( int i =0; i < _n_frames; i++)
+    {
+	    this->set_state((_base_frame_no +i),0x2);
+    }
+    nFreeFrames -= _n_frames; 
 }
 
 void ContFramePool::release_frames(unsigned long _first_frame_no)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    unsigned int frame_no = _first_frame_no;
+    unsigned int release_frame_amount=0;
+    // need to check this frame pool possess the frame we want to release
+    ContFramePool* current = ContFramePool::node_head;
+    while (( current->base_frame_no > _first_frame_no) || ( _first_frame_no >= current->base_frame_no + current->n_frames))
+    {
+	    if(current->next ==NULL)
+	    {
+		    return;
+	    }
+	    else
+	    {
+	            current = current->next;
+	    }
+    }
+
+     // if input is not head
+    if ( current->get_state(frame_no) != 0x1)
+    {
+	    assert(false);
+    }
+    //set the head of sequence to free
+    current->set_state(frame_no,0x0);
+    release_frame_amount++;
+   // set the rest of sequence to free
+    frame_no++;
+    while( current->get_state(frame_no) != 0x1)
+    {
+	   // if there's a free frame the sequence finish
+	    if (current->get_state(frame_no) == 0x0)
+	   {
+		   break;
+	   }
+	   current->set_state(frame_no,0x0);
+	   release_frame_amount++;
+	   frame_no++;
+    } 
+  
+    current->nFreeFrames += release_frame_amount;
+    Console::puts("release frame done \n");
 }
+    
+
+
 
 unsigned long ContFramePool::needed_info_frames(unsigned long _n_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+	// 4K = 4096
+	return (_n_frames/ 4*4096) + ( (_n_frames) % (4*4096) > 0 ? 1 : 0);
 }
