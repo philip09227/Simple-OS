@@ -226,9 +226,8 @@ int main() {
 #ifdef _TEST_PAGE_TABLE_
 
     /* WE TEST JUST THE PAGE TABLE */
-    GeneratePageTableMemoryReferences(FAULT_ADDR, NACCESS);
-
-#else
+//    GeneratePageTableMemoryReferences(FAULT_ADDR, NACCESS);
+//#else
 
     /* WE TEST JUST THE VM POOLS */
 

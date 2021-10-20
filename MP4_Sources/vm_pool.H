@@ -1,11 +1,10 @@
 /*
     File: vm_pool.H
 
-    Author: R. Bettati
+    Author: R. Bettati, Nikhil Gupta
             Department of Computer Science
             Texas A&M University
     Date  : 10/26/2010
-    Update: 21/10/13
 
     Description: Management of the Virtual Memory Pool
 
@@ -27,7 +26,6 @@
 
 #include "utils.H"
 #include "cont_frame_pool.H"
-#include "page_table.H"
 
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */
@@ -44,6 +42,16 @@ class PageTable;
 class VMPool { /* Virtual Memory Pool */
 private:
    /* -- DEFINE YOUR VIRTUAL MEMORY POOL DATA STRUCTURE(s) HERE. */
+   //structure to store memory region
+   struct region
+   {
+	unsigned long first_address;
+	unsigned long size;	
+   };
+   unsigned long   base_address;
+   unsigned long   size;
+   ContFramePool * frame_pool;
+   PageTable     * page_table;
 
 public:
    VMPool(unsigned long  _base_address,

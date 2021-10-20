@@ -26,6 +26,7 @@
 #include "machine.H"
 #include "exceptions.H"
 #include "cont_frame_pool.H"
+#include "vm_pool.H"
 
 /*--------------------------------------------------------------------------*/
 /* FORWARDS */
@@ -49,7 +50,8 @@ private:
   static unsigned long   shared_size;        /* size of shared address space */
 
   /* DATA FOR CURRENT PAGE TABLE */
-  unsigned long        * page_directory;     /* where is page directory located? */
+  unsigned long        * page_directory;     
+  static VMPool * vm_pool [512]; 
 
 public:
   static const unsigned int PAGE_SIZE        = Machine::PAGE_SIZE; 
@@ -81,10 +83,20 @@ public:
   /* Enable paging on the CPU. Typically, a CPU start with paging disabled, and
      memory is accessed by addressing physical memory directly. After paging is
      enabled, memory is addressed logically. */
-
-  static void handle_fault(REGS * _r);
-  /* The page fault handler. */
-
+    
+    static void handle_fault(REGS * _r);
+    /* The page fault handler. */
+    
+    // -- NEW IN MP4
+    
+    void register_pool(VMPool * _vm_pool);
+    /* Register a virtual memory pool with the page table. */
+    
+    void free_page(unsigned long _page_no);
+    /* If page is valid, release frame and mark page invalid. */
+   unsigned long * PDE_address(unsigned long address);
+   unsigned long * PTE_address(unsigned long address);
+    
 };
 
 #endif
