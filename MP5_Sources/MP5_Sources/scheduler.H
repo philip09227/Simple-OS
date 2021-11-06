@@ -57,6 +57,14 @@
 class Scheduler {
 
   /* The scheduler may need private members... */
+	struct queue
+	{
+		Thread* thread;
+		struct queue* next;
+	};
+	Thread* current_running_thread;
+       	struct queue* head; // = &ready_queue;
+	struct queue* tail; // = &ready_queue;	
   
 public:
 
@@ -88,7 +96,7 @@ public:
    /* Remove the given thread from the scheduler in preparation for destruction
       of the thread. 
       Graciously handle the case where the thread wants to terminate itself.*/
-  
+   void enqueue(Thread* _thread);
 };
 	
 	
