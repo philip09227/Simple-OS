@@ -30,7 +30,7 @@
 
 #include "assert.H"
 #include "console.H"
-
+#include "scheduler.H"
 #include "frame_pool.H"
 
 #include "thread.H"
@@ -40,7 +40,7 @@
 /*--------------------------------------------------------------------------*/
 /* EXTERNS */
 /*--------------------------------------------------------------------------*/
-
+extern Scheduler* SYSTEM_SCHEDULER;
 Thread * current_thread = 0;
 /* Pointer to the currently running thread. This is used by the scheduler,
    for example. */
@@ -73,7 +73,10 @@ static void thread_shutdown() {
        This is a bit complicated because the thread termination interacts with the scheduler.
      */
 
-    assert(false);
+	Machine::disable_interrupts();
+	SYSTEM_SCHEDULER->terminate(current_thread);
+	SYSTEM_SCHEDULER->yield();
+
     /* Let's not worry about it for now. 
        This means that we should have non-terminating thread functions. 
     */
@@ -81,7 +84,7 @@ static void thread_shutdown() {
 
 static void thread_start() {
      /* This function is used to release the thread for execution in the ready queue. */
-    
+    	Machine::enable_interrupts();
      /* We need to add code, but it is probably nothing more than enabling interrupts. */
 }
 

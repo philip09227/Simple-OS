@@ -53,18 +53,25 @@
 /*--------------------------------------------------------------------------*/
 /* SCHEDULER */
 /*--------------------------------------------------------------------------*/
+struct queue
+        {
+                Thread* thread;
+                struct queue* next;
+        };
 
 class Scheduler {
 
   /* The scheduler may need private members... */
-	struct queue
+	/*struct queue
 	{
 		Thread* thread;
 		struct queue* next;
-	};
+	};*/
+	queue* head;
+	queue* tail;
 	Thread* current_running_thread;
-       	struct queue* head; // = &ready_queue;
-	struct queue* tail; // = &ready_queue;	
+       	//struct queue* head; // = &ready_queue;
+	//struct queue* tail; // = &ready_queue;	
   
 public:
 

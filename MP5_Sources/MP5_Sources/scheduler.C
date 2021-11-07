@@ -47,91 +47,112 @@
 
 Scheduler::Scheduler() {
   current_running_thread = NULL;
+     
   head = NULL;
-  tail = NULL;
+  tail = NULL; 
   Console::puts("Constructed Scheduler.\n");
 }
 
 void Scheduler::yield() {
-  if(head!=NULL)
-  {
-	  queue* temp = head;
-	  Thread* next_thread = head->thread;
-	  head = head->next;
-	  if(head==NULL)
-	  {
-		  tail=NULL;
-	  }
-	  current_running_thread = next_thread;
-	  Thread::dispatch_to(next_thread);
-  }
+	if(Machine::interrupts_enabled())
+	{
+		Machine::disable_interrupts();
+	}
+	if(head!=NULL) // first item in ready queue is not NULL
+	{
+		queue* first_queue = head; //first item
+		Thread* next_thread = first_queue->thread; 
+		head = head->next;
+		current_running_thread = next_thread;		
+		//Console::puts("dispatch to next thread\n");
+		Thread::dispatch_to(next_thread);
+
+	}
+	//Console::puts("dispatch done \n");
+
+	if(!Machine::interrupts_enabled())
+	{
+		Machine::enable_interrupts();
+	}
+	Console::puts("Yield finished.\n");
+		
 }
 
 void Scheduler::resume(Thread * _thread) {
-  enqueue(_thread);
+	if(Machine::interrupts_enabled())
+        {
+                Machine::disable_interrupts();
+        }
+	enqueue(_thread);
+
+	if(!Machine::interrupts_enabled())
+        {
+                Machine::enable_interrupts();
+        }
+	Console::puts("resume done\n");
 }
 
 void Scheduler::add(Thread * _thread) {
-  enqueue(_thread);
+	if(Machine::interrupts_enabled())
+        {
+                Machine::disable_interrupts();
+        }
+        
+        enqueue(_thread);
+
+        if(!Machine::interrupts_enabled())
+        {
+                Machine::enable_interrupts();
+        }
+
+	Console::puts("add done\n");
 
 }
 
 void Scheduler::terminate(Thread * _thread) {
- // running thread sucide
-  if (current_running_thread == _thread)
-  {
-	 yield();
-  }
-  else
-  {
-  	if(head->thread == _thread) // if terminate head
-  	{
-	  	head = head->next;
-	  	if(head==NULL)
-	  	{
-	  		tail = NULL;
-	  	}
-  	}
-  	else
-  	{
-  		queue* current = head->next;
-  		queue* prev = head;
-  		while(current!=NULL)
-  		{
-	  		if (current->thread !=_thread)
-	  		{
-		  		current = current->next;
-		 		prev = prev->next;
-	  		}
-	  		else
-	  		{
+	//if thread sucide
+	if(current_running_thread ==_thread)
+	{
+		yield();
+	}
+	else
+	{
+		queue* prev = head;
+		queue* current = head->next;
+		while(current!=NULL)
+		{
+			if(current->thread == _thread)
+			{
 				prev->next = current->next;
-				current = current->next;
+ 				
+				break;
 			}
+			current = current->next;
+			prev = prev->next;
 		}
-  	}
-  }
+	}
+	Console::puts("Terminate Scheduler\n");
+
 }
 
 void Scheduler::enqueue(Thread* _thread)
 {
-	if(head==NULL||tail==NULL)
+	
+	queue* new_queue = new queue;
+	new_queue->thread = _thread;
+	new_queue->next = NULL;
+	
+	if(head ==NULL||tail ==NULL)
 	{
-		queue new_thread;
-		new_thread.thread = _thread;
-		new_thread.next = NULL;
-		head = &new_thread;
-		tail = &new_thread;
+		head = tail = new_queue;
 	}
 	else
 	{
-		queue new_thread;
-		new_thread.thread = _thread;
-		new_thread.next = NULL;
-		tail->next = &new_thread;
-		tail = tail->next;
+		tail->next = new_queue;
+    		tail = new_queue;
 	}
-}
+        Console::puts("enqueue done\n");
+} 
 
 	
 

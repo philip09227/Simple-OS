@@ -121,8 +121,9 @@ void pass_on_CPU(Thread * _to_thread) {
         /* We use a scheduler. Instead of dispatching to the next thread,
            we pre-empt the current thread by putting it onto the ready
            queue and yielding the CPU. */
-
+	
         SYSTEM_SCHEDULER->resume(Thread::CurrentThread());
+
         SYSTEM_SCHEDULER->yield();
 #endif
 }
@@ -152,12 +153,16 @@ void fun1() {
         for (int i = 0; i < 10; i++) {
             Console::puts("FUN 1: TICK ["); Console::puti(i); Console::puts("]\n");
         }
+	
         pass_on_CPU(thread2);
+	
+	
     }
 }
 
 
 void fun2() {
+	
     Console::puts("Thread: "); Console::puti(Thread::CurrentThread()->ThreadId()); Console::puts("\n");
     Console::puts("FUN 2 INVOKED!\n");
 
@@ -298,10 +303,13 @@ int main() {
 #ifdef _USES_SCHEDULER_
 
     /* WE ADD thread2 - thread4 TO THE READY QUEUE OF THE SCHEDULER. */
-
+    Console::puts("Started add thread 2-4\n");
     SYSTEM_SCHEDULER->add(thread2);
+    Console::puts("add thread 2 done \n");
     SYSTEM_SCHEDULER->add(thread3);
+    Console::puts("add thread 3 done \n");
     SYSTEM_SCHEDULER->add(thread4);
+    Console::puts("Finished adding thread\n");
 
 #endif
 
