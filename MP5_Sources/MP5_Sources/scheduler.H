@@ -103,9 +103,22 @@ public:
    /* Remove the given thread from the scheduler in preparation for destruction
       of the thread. 
       Graciously handle the case where the thread wants to terminate itself.*/
-   void enqueue(Thread* _thread);
+   virtual void enqueue(Thread* _thread);
 };
 	
 	
+class RRScheduler: public Scheduler
+{
+	 queue* head;
+        queue* tail;
+        Thread* current_running_thread;
+public:
+	RRScheduler(unsigned EOQ);
+	virtual void yield();
+	virtual void resume(Thread* _thread);
+	virtual void add(Thread* _thread);
+	virtual void terminate(Thread* _thread);
+	virtual void enqueue(Thread* _thread);
 
+};
 #endif

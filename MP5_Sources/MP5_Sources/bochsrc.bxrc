@@ -5,6 +5,8 @@
 # how much memory the emulated machine will have
 megs: 32
 
+port_e9_hack: enabled=1
+
 # filename of ROM images
 romimage: file=BIOS-bochs-latest
 vgaromimage: file=VGABIOS-lgpl-latest
