@@ -40,6 +40,7 @@
 /*--------------------------------------------------------------------------*/
 /* EXTERNS */
 /*--------------------------------------------------------------------------*/
+//extern Scheduler* SYSTEM_SCHEDULER;
 extern RRScheduler* SYSTEM_SCHEDULER;
 Thread * current_thread = 0;
 /* Pointer to the currently running thread. This is used by the scheduler,

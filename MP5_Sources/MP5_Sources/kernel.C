@@ -154,7 +154,7 @@ void fun1() {
             Console::puts("FUN 1: TICK ["); Console::puti(i); Console::puts("]\n");
         }
 	
-        pass_on_CPU(thread2);
+       //pass_on_CPU(thread2);
 	
 	
     }
@@ -176,7 +176,7 @@ void fun2() {
         for (int i = 0; i < 10; i++) {
             Console::puts("FUN 2: TICK ["); Console::puti(i); Console::puts("]\n");
         }
-        pass_on_CPU(thread3);
+        //pass_on_CPU(thread3);
     }
 }
 
@@ -189,7 +189,7 @@ void fun3() {
         for (int i = 0; i < 10; i++) {
 	    Console::puts("FUN 3: TICK ["); Console::puti(i); Console::puts("]\n");
         }
-        pass_on_CPU(thread4);
+        //pass_on_CPU(thread4);
     }
 }
 
@@ -202,7 +202,7 @@ void fun4() {
         for (int i = 0; i < 10; i++) {
 	    Console::puts("FUN 4: TICK ["); Console::puti(i); Console::puts("]\n");
         }
-       pass_on_CPU(thread1);
+      // pass_on_CPU(thread1);
     }
 }
 
@@ -260,7 +260,7 @@ int main() {
 #ifdef _USES_SCHEDULER_
 
     /* -- SCHEDULER -- IF YOU HAVE ONE -- */
- 
+    //SYSTEM_SCHEDULER = new SCHEDULER(); 
     SYSTEM_SCHEDULER = new RRScheduler(50);
 
 #endif

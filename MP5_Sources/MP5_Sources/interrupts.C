@@ -144,7 +144,7 @@ void InterruptHandler::dispatch_interrupt(REGS * _r) {
 
   /* Send an EOI message to the master interrupt controller. */
   Machine::outportb(0x20, 0x20);
-    
+  handler->handle_interrupt(_r);  
 }
 
 void InterruptHandler::register_handler(unsigned int        _irq_code,
