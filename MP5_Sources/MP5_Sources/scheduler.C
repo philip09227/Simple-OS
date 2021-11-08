@@ -117,19 +117,24 @@ void Scheduler::terminate(Thread * _thread) {
 		
 	}
 	else
-	{
-		queue* prev = head;
-		queue* current = head->next;
-		while(current!=NULL)
+	{	if( head->thread ==_thread)
 		{
-			if(current->thread == _thread)
+			head = head->next;
+		}
+		else
+		{
+			queue* prev = head;
+			queue* current = head->next;
+			while(current!=NULL)
 			{
-				prev->next = current->next;
- 				
-				break;
+				if(current->thread == _thread)
+				{
+					prev->next = current->next;	
+					break;
+				}
+				current = current->next;
+				prev = prev->next;
 			}
-			current = current->next;
-			prev = prev->next;
 		}
 	}
 	Console::puts("Terminate Scheduler\n");
@@ -231,22 +236,28 @@ void RRScheduler::terminate(Thread * _thread) {
 
         }
         else
-        {
-                queue* prev = head;
-                queue* current = head->next;
-                while(current!=NULL)
+        {       if( head->thread ==_thread)
                 {
-                        if(current->thread == _thread)
+                        head = head->next;
+                }
+                else
+                {
+                        queue* prev = head;
+                        queue* current = head->next;
+                        while(current!=NULL)
                         {
-                                prev->next = current->next;
-
-                                break;
+                                if(current->thread == _thread)
+                                {
+                                        prev->next = current->next;   
+                                        break;
+                                }
+                                current = current->next;
+                                prev = prev->next;
                         }
-                        current = current->next;
-                        prev = prev->next;
                 }
         }
-        Console::puts("RR Terminate Scheduler\n");
+
+	Console::puts("RR Terminate Scheduler\n");
 
 }
 void RRScheduler::enqueue(Thread* _thread)
