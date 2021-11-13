@@ -249,15 +249,15 @@ void RRScheduler::terminate(Thread * _thread) {
         //if thread sucide
         if(current_running_thread ==_thread)
         {
-                yield();
 		delete _thread;
+                yield();
+		
 
         }
         else
         {       if( head->thread ==_thread)
                 {
-                        queue * temp= head;
-			
+                        queue * temp= head;	
 			head = head->next;
 			delete _thread;
 			delete temp;
@@ -275,8 +275,11 @@ void RRScheduler::terminate(Thread * _thread) {
  					delete current;
                                         break;
                                 }
-                                current = current->next;
-                                prev = prev->next;
+				else
+				{
+                                	current = current->next;
+                                	prev = prev->next;
+				}
                         }
                 }
         }

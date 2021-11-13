@@ -107,8 +107,8 @@ void operator delete(void *p, size_t size){
 #ifdef _USES_SCHEDULER_
 
 /* -- A POINTER TO THE SYSTEM SCHEDULER */
-Scheduler * SYSTEM_SCHEDULER;
-//RRScheduler * SYSTEM_SCHEDULER;
+//Scheduler * SYSTEM_SCHEDULER;
+RRScheduler * SYSTEM_SCHEDULER;
 
 #endif
 
@@ -265,8 +265,8 @@ int main() {
 #ifdef _USES_SCHEDULER_
 
     /* -- SCHEDULER -- IF YOU HAVE ONE -- */
-    SYSTEM_SCHEDULER = new Scheduler(); 
-    //SYSTEM_SCHEDULER = new RRScheduler(50);
+   // SYSTEM_SCHEDULER = new Scheduler(); 
+    SYSTEM_SCHEDULER = new RRScheduler(50);
 
 #endif
 
