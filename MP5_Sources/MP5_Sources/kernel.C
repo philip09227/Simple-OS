@@ -95,6 +95,10 @@ void operator delete (void * p) {
 void operator delete[] (void * p) {
     MEMORY_POOL->release((unsigned long)p);
 }
+void operator delete(void *p, size_t size){
+    MEMORY_POOL->release((unsigned long)p);
+}
+
 
 /*--------------------------------------------------------------------------*/
 /* SCHEDULRE and AUXILIARY HAND-OFF FUNCTION FROM CURRENT THREAD TO NEXT */
@@ -103,7 +107,8 @@ void operator delete[] (void * p) {
 #ifdef _USES_SCHEDULER_
 
 /* -- A POINTER TO THE SYSTEM SCHEDULER */
-RRScheduler * SYSTEM_SCHEDULER;
+Scheduler * SYSTEM_SCHEDULER;
+//RRScheduler * SYSTEM_SCHEDULER;
 
 #endif
 
@@ -154,7 +159,7 @@ void fun1() {
             Console::puts("FUN 1: TICK ["); Console::puti(i); Console::puts("]\n");
         }
 	
-       //pass_on_CPU(thread2);
+       pass_on_CPU(thread2);
 	
 	
     }
@@ -176,7 +181,7 @@ void fun2() {
         for (int i = 0; i < 10; i++) {
             Console::puts("FUN 2: TICK ["); Console::puti(i); Console::puts("]\n");
         }
-        //pass_on_CPU(thread3);
+        pass_on_CPU(thread3);
     }
 }
 
@@ -189,7 +194,7 @@ void fun3() {
         for (int i = 0; i < 10; i++) {
 	    Console::puts("FUN 3: TICK ["); Console::puti(i); Console::puts("]\n");
         }
-        //pass_on_CPU(thread4);
+        pass_on_CPU(thread4);
     }
 }
 
@@ -202,7 +207,7 @@ void fun4() {
         for (int i = 0; i < 10; i++) {
 	    Console::puts("FUN 4: TICK ["); Console::puti(i); Console::puts("]\n");
         }
-      // pass_on_CPU(thread1);
+       pass_on_CPU(thread1);
     }
 }
 
@@ -260,8 +265,8 @@ int main() {
 #ifdef _USES_SCHEDULER_
 
     /* -- SCHEDULER -- IF YOU HAVE ONE -- */
-    //SYSTEM_SCHEDULER = new SCHEDULER(); 
-    SYSTEM_SCHEDULER = new RRScheduler(50);
+    SYSTEM_SCHEDULER = new Scheduler(); 
+    //SYSTEM_SCHEDULER = new RRScheduler(50);
 
 #endif
 

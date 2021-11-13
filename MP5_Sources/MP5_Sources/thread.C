@@ -40,8 +40,8 @@
 /*--------------------------------------------------------------------------*/
 /* EXTERNS */
 /*--------------------------------------------------------------------------*/
-//extern Scheduler* SYSTEM_SCHEDULER;
-extern RRScheduler* SYSTEM_SCHEDULER;
+extern Scheduler* SYSTEM_SCHEDULER;
+//extern RRScheduler* SYSTEM_SCHEDULER;
 Thread * current_thread = 0;
 /* Pointer to the currently running thread. This is used by the scheduler,
    for example. */
@@ -75,7 +75,10 @@ static void thread_shutdown() {
      */
 
 	Machine::disable_interrupts();
+	Console :: puts("Now shut down the thread\n");
 	SYSTEM_SCHEDULER->terminate(current_thread);
+
+
 	
 
     /* Let's not worry about it for now. 

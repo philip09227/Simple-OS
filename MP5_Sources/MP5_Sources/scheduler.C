@@ -23,6 +23,7 @@
 #include "assert.H"
 #include "simple_keyboard.H"
 #include "simple_timer.H"
+
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */
 /*--------------------------------------------------------------------------*/
@@ -45,6 +46,7 @@
 /* METHODS FOR CLASS   S c h e d u l e r  */
 /*--------------------------------------------------------------------------*/
 
+
 Scheduler::Scheduler() {
   current_running_thread = NULL;
      
@@ -63,7 +65,8 @@ void Scheduler::yield() {
 		queue* first_queue = head; //first item
 		Thread* next_thread = first_queue->thread; 
 		head = head->next;
-		current_running_thread = next_thread;		
+		current_running_thread = next_thread;	
+	        delete first_queue;	
 		//Console::puts("dispatch to next thread\n");
 		Thread::dispatch_to(next_thread);
 
@@ -111,15 +114,19 @@ void Scheduler::add(Thread * _thread) {
 
 void Scheduler::terminate(Thread * _thread) {
 	//if thread sucide
+	Console::puts("Started terminate \n");
 	if(current_running_thread ==_thread)
 	{
+		delete _thread;
 		yield();		
-		
 	}
 	else
 	{	if( head->thread ==_thread)
 		{
+			queue * temp = head;
 			head = head->next;
+			delete temp;
+			delete _thread;
 		}
 		else
 		{
@@ -130,10 +137,15 @@ void Scheduler::terminate(Thread * _thread) {
 				if(current->thread == _thread)
 				{
 					prev->next = current->next;	
+					delete current;
+					delete _thread;
 					break;
 				}
-				current = current->next;
-				prev = prev->next;
+				else
+				{
+					current = current->next;
+					prev = prev->next;
+				}
 			}
 		}
 	}
@@ -171,7 +183,12 @@ RRScheduler::RRScheduler(unsigned EOQ)
   SimpleTimer* timer = new SimpleTimer(1000/EOQ);
   InterruptHandler::register_handler(0,timer);
   Console::puts("Constructed RR Scheduler.\n");
+  
+
+
+
 }
+
 
 void RRScheduler::yield() {
         if(Machine::interrupts_enabled())
@@ -184,7 +201,7 @@ void RRScheduler::yield() {
                 Thread* next_thread = first_queue->thread;
                 head = head->next;
                 current_running_thread = next_thread;
-               
+                delete first_queue;               
                 Thread::dispatch_to(next_thread);
 
         }
@@ -233,12 +250,17 @@ void RRScheduler::terminate(Thread * _thread) {
         if(current_running_thread ==_thread)
         {
                 yield();
+		delete _thread;
 
         }
         else
         {       if( head->thread ==_thread)
                 {
-                        head = head->next;
+                        queue * temp= head;
+			
+			head = head->next;
+			delete _thread;
+			delete temp;
                 }
                 else
                 {
@@ -249,6 +271,8 @@ void RRScheduler::terminate(Thread * _thread) {
                                 if(current->thread == _thread)
                                 {
                                         prev->next = current->next;   
+					delete _thread;
+ 					delete current;
                                         break;
                                 }
                                 current = current->next;

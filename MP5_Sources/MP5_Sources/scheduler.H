@@ -59,6 +59,7 @@ struct queue
                 struct queue* next;
         };
 
+
 class Scheduler {
 
   /* The scheduler may need private members... */
@@ -74,6 +75,7 @@ class Scheduler {
 	//struct queue* tail; // = &ready_queue;	
   
 public:
+
 
    Scheduler();
    /* Setup the scheduler. This sets up the ready queue, for example.
@@ -104,6 +106,7 @@ public:
       of the thread. 
       Graciously handle the case where the thread wants to terminate itself.*/
    virtual void enqueue(Thread* _thread);
+
 };
 	
 	
@@ -119,6 +122,5 @@ public:
 	virtual void add(Thread* _thread);
 	virtual void terminate(Thread* _thread);
 	virtual void enqueue(Thread* _thread);
-
 };
 #endif
