@@ -23,7 +23,7 @@
 #include "assert.H"
 #include "simple_keyboard.H"
 #include "simple_timer.H"
-
+#include "blocking_disk.H"
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */
 /*--------------------------------------------------------------------------*/
@@ -46,7 +46,7 @@
 /* METHODS FOR CLASS   S c h e d u l e r  */
 /*--------------------------------------------------------------------------*/
 
-
+extern BlockingDisk* SYSTEM_DISK; 
 Scheduler::Scheduler() {
   current_running_thread = NULL;
      
@@ -60,6 +60,18 @@ void Scheduler::yield() {
 	{
 		Machine::disable_interrupts();
 	}
+	// check whether IO device is done or not if it's done, dequeu item form device queue and add it to the front of ready queue
+	if (SYSTEM_DISK->is_ready())
+	{
+		Thread* device_thread = SYSTEM_DISK->dequeue();
+		queue* new_queue = new queue;
+		new_queue->thread = device_thread;
+		queue* temp = head;
+		new_queue->next = temp;
+		head = new_queue;
+	
+	}
+	
 	if(head!=NULL) // first item in ready queue is not NULL
 	{
 		queue* first_queue = head; //first item

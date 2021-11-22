@@ -47,7 +47,7 @@ private:
 
      unsigned int disk_size;      /* In Byte */
 
-     void issue_operation(DISK_OPERATION _op, unsigned long _block_no);
+    // void issue_operation(DISK_OPERATION _op, unsigned long _block_no);
      /* Send a sequence of commands to the controller to initialize the READ/WRITE 
         operation. This operation is called by read() and write(). */ 
         
@@ -76,7 +76,7 @@ public:
       infer this information from the disk controller. */
 
    /* DISK CONFIGURATION */
-   
+    void issue_operation(DISK_OPERATION _op, unsigned long _block_no);
    virtual unsigned int size();
    /* Returns the size of the disk, in Byte. */   
 

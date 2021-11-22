@@ -25,10 +25,10 @@
 #include "thread.H"
 #include "interrupts.H"
 
-struct queue
+struct device_queue
 {
 	Thread * thread;
-	struct queue* next;
+	struct device_queue* next;
 };
 
 /*--------------------------------------------------------------------------*/
@@ -42,17 +42,10 @@ struct queue
 /*--------------------------------------------------------------------------*/
 
 class BlockingDisk : public SimpleDisk {
-
-protected:
-	virtual void wait_until_ready();
-	queue* device_queue;
-	queue* head;
-        queue* tail;
-        int queue_size;
-publiic:
+public:
   bool is_ready();
-  void dequeue();
-  void enqueue();
+  Thread* dequeue();
+  void enqueue(Thread* _thread);
 
    BlockingDisk(DISK_ID _disk_id, unsigned int _size); 
    /* Creates a BlockingDisk device with the given size connected to the 
@@ -69,6 +62,12 @@ publiic:
 
    virtual void write(unsigned long _block_no, unsigned char * _buf);
    /* Writes 512 Bytes from the buffer to the given block on the disk. */
+protected:
+        virtual void wait_until_ready();
+        //device_queue* device_queue;
+        device_queue* head;
+        device_queue* tail;
+        int queue_size;
 
 };
 
