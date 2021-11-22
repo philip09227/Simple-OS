@@ -56,12 +56,12 @@ Scheduler::Scheduler() {
 }
 
 void Scheduler::yield() {
-	if(Machine::interrupts_enabled())
+/*	if(Machine::interrupts_enabled())
 	{
 		Machine::disable_interrupts();
-	}
+	}*/
 	// check whether IO device is done or not if it's done, dequeu item form device queue and add it to the front of ready queue
-	if (SYSTEM_DISK->is_ready())
+	/*if (SYSTEM_DISK->is_ready())
 	{
 		Thread* device_thread = SYSTEM_DISK->dequeue();
 		queue* new_queue = new queue;
@@ -70,7 +70,7 @@ void Scheduler::yield() {
 		new_queue->next = temp;
 		head = new_queue;
 	
-	}
+	}*/
 	
 	if(head!=NULL) // first item in ready queue is not NULL
 	{
@@ -85,40 +85,40 @@ void Scheduler::yield() {
 	}
 	//Console::puts("dispatch done \n");
 
-	if(!Machine::interrupts_enabled())
+/*	if(!Machine::interrupts_enabled())
 	{
 		Machine::enable_interrupts();
-	}
+	}*/
 	Console::puts("Yield finished.\n");
 		
 }
 
 void Scheduler::resume(Thread * _thread) {
-	if(Machine::interrupts_enabled())
+/*	if(Machine::interrupts_enabled())
         {
                 Machine::disable_interrupts();
-        }
+        }*/
 	enqueue(_thread);
 
-	if(!Machine::interrupts_enabled())
+/*	if(!Machine::interrupts_enabled())
         {
                 Machine::enable_interrupts();
-        }
+        }*/
 	Console::puts("resume done\n");
 }
 
 void Scheduler::add(Thread * _thread) {
-	if(Machine::interrupts_enabled())
+/*	if(Machine::interrupts_enabled())
         {
                 Machine::disable_interrupts();
-        }
+        }*/
         
         enqueue(_thread);
 
-        if(!Machine::interrupts_enabled())
+/*        if(!Machine::interrupts_enabled())
         {
-                Machine::enable_interrupts();
-        }
+               Machine::enable_interrupts();
+        }*/
 
 	Console::puts("add done\n");
 

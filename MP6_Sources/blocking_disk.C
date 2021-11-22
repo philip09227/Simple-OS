@@ -96,6 +96,7 @@ void BlockingDisk::wait_until_ready()
 		Thread * current_thread = Thread::CurrentThread();
 		enqueue(current_thread);
 		queue_size+=1;
+		SYSTEM_SCHEDULER->resume(current_thread);
 		SYSTEM_SCHEDULER->yield();
 	}
 }
@@ -119,6 +120,8 @@ void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
 		tmpw = Machine::inportw(0x1F0);
 		_buf[i*2] = (unsigned char) tmpw;
 		_buf[i*2+1] = (unsigned char) (tmpw >> 8);
+		Console::puts("Block Dish read done\n");
+
 	}
 
   	
@@ -140,5 +143,6 @@ void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf) {
 			Machine::outportw(0x1F0,tmpw);
                 }
         }
+	Console::puts("Block Dish write done\n");
 
 }
