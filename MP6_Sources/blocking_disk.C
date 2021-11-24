@@ -23,9 +23,6 @@
 #include "console.H"
 #include "blocking_disk.H"
 #include "scheduler.H"
-#include "simple_disk.H"
-#include "thread.H"
-
 extern Scheduler* SYSTEM_SCHEDULER;
 /*--------------------------------------------------------------------------*/
 /* CONSTRUCTOR */
@@ -33,127 +30,100 @@ extern Scheduler* SYSTEM_SCHEDULER;
 
 BlockingDisk::BlockingDisk(DISK_ID _disk_id, unsigned int _size) 
   : SimpleDisk(_disk_id, _size) {
-	  queue_size = 0 ;
-	  head = NULL;
-	  tail = NULL;
+	  disk_head = NULL;
+	  disk_tail = NULL;
+
 }
 
 /*--------------------------------------------------------------------------*/
 /* SIMPLE_DISK FUNCTIONS */
 /*--------------------------------------------------------------------------*/
-int BlockingDisk::device_queue_size()
-{
-	return queue_size;
-}
-void BlockingDisk::enqueue(Thread* _thread)
-{
-	device_queue* new_queue = new device_queue;
-	new_queue->thread = _thread;
-	new_queue->next = NULL;
-	if((head ==NULL ||  tail ==NULL))
-	{
-		head = tail = new_queue;
-	}
-	else
-	{
-		tail->next = new_queue;
-		tail = new_queue;
-	}
-	queue_size+=1;
-	Console::puts(" Device queue enqueue done\n");
-
-}
-Thread* BlockingDisk::dequeue()
-{
-	if (head!=NULL|| tail!=NULL)
-	{
-		// only one item in device queue
-		if (head ==tail)
-		{
-			device_queue* temp = head;
-			Thread* return_thread = temp->thread;
-			head = NULL;
-			tail = NULL;
-			delete temp;
-			queue_size--;
-			return return_thread;
-		}
-		else
-		{
-			device_queue* temp = head;
-			head = head->next;
-			Thread* return_thread = temp->thread;
-			delete temp;
-			queue_size--;
-			return return_thread;
-		}
-	}
-	Console::puts(" Device queue dequeue done\n");
-}
-
-			
-
-void BlockingDisk::wait_until_ready()
-{
-	if(!is_ready())
-	{
-		// devices are not ready therefore, add current thread which is calling I/O operation into device queue
-		Thread * current_thread = Thread::CurrentThread();
-		enqueue(current_thread);
-		queue_size+=1;
-		//SYSTEM_SCHEDULER->resume(current_thread);
-		//Console::puts(" device is not ready  then yield \n");	
-		SYSTEM_SCHEDULER->resume(current_thread);
-		SYSTEM_SCHEDULER->yield();
-	
-	}
-}
-
-
-
-bool BlockingDisk::is_ready()
+bool BlockingDisk::disk_is_ready()
 {
 	return SimpleDisk::is_ready();
 }
 
-void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
-	// check the status of device whether it is ready for I/O opearation 
-	//wait_until_ready();
- 	SimpleDisk::issue_operation(DISK_OPERATION::READ,_block_no);
-//	SYSTEM_SCHEDULER->flag = true;
-	wait_until_ready();
-	int i;
-	unsigned short tmpw;
-	for ( i = 0; i< 256; i++)
+void BlockingDisk::disk_wait_until_ready()
+{
+	if(!SimpleDisk::is_ready())
 	{
-		tmpw = Machine::inportw(0x1F0);
-		_buf[i*2] = (unsigned char) tmpw;
-		_buf[i*2+1] = (unsigned char) (tmpw >> 8);
-
+		Thread* current_thread = Thread::CurrentThread();
+		disk_enqueue(current_thread);
+		SYSTEM_SCHEDULER->yield();
 	}
-  	//SYSTEM_SCHEDULER->flag = false;
-  	Console::puts("Block Dish read done\n");
+}
+
+void BlockingDisk::disk_enqueue(Thread* _thread)
+{
+	disk_queue* new_queue = new disk_queue();
+	new_queue->thread = _thread;
+	new_queue ->next = NULL;
+	// if queue is empty 
+	if( disk_head ==NULL || disk_tail==NULL)
+	{
+		disk_head =disk_tail = new_queue;
+	}
+	else
+	{
+		disk_tail->next =  new_queue;
+		disk_tail = disk_tail->next;
+	}
+}
+
+Thread* BlockingDisk::disk_dequeue()
+{
+	if(disk_head!=NULL)
+	{
+		disk_queue* temp_queue = disk_head;
+		Thread* temp_thread = disk_head->thread;
+		if( disk_head == disk_tail)
+		{
+			disk_head = NULL;
+			disk_tail = NULL;
+		}
+		else
+		{
+			disk_head = disk_head->next;
+		}
+		delete temp_queue;
+		return temp_thread;
+	}
+}
+
+
+	
+void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
+  SimpleDisk::issue_operation(DISK_OPERATION::READ, _block_no);
+  disk_wait_until_ready();
+  int i;
+        unsigned short tmpw;
+        for ( i = 0; i< 256; i++)
+        {
+                tmpw = Machine::inportw(0x1F0);
+                _buf[i*2] = (unsigned char) tmpw;
+                _buf[i*2+1] = (unsigned char) (tmpw >> 8);
+
+        }
+        //SYSTEM_SCHEDULER->flag = false;
+        Console::puts("Block Disk read done\n");
 
 
 }
 
 
 void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf) {
-  	//wait_until_ready();
-	SimpleDisk::issue_operation(DISK_OPERATION::WRITE , _block_no);
-	//SYSTEM_SCHEDULER->flag = true;
-        wait_until_ready();
-
-        int i;
+  	SimpleDisk::issue_operation(DISK_OPERATION::WRITE , _block_no);
+	disk_wait_until_ready();
+	int i;
         unsigned short tmpw;
         for ( i = 0; i< 256; i++)
         {
-		for( i=0; i<256; i++)
-		{
-			tmpw = _buf[2*i] | ( _buf[2*i+1] << 8);
-			Machine::outportw(0x1F0,tmpw);
+                for( i=0; i<256; i++)
+                {
+                        tmpw = _buf[2*i] | ( _buf[2*i+1] << 8);
+                        Machine::outportw(0x1F0,tmpw);
                 }
         }
-	Console::puts("Block Disk write done\n");
-	//SYSTEM_SCHEDULER->flag = false;
+        Console::puts("Block Disk write done\n");
+
 }

@@ -47,7 +47,7 @@
 /* METHODS FOR CLASS   S c h e d u l e r  */
 /*--------------------------------------------------------------------------*/
 
-extern MirroredDisk* SYSTEM_DISK; 
+extern BlockingDisk* SYSTEM_DISK; 
 Scheduler::Scheduler() {
   current_running_thread = NULL;
   flag = false;  
@@ -63,14 +63,17 @@ void Scheduler::yield() {
 	}*/
 	// check whether IO device is done or not if it's done, dequeu item form device queue and add it to the front of ready queue
 	Console::puts("==================================================================================================\n");
-	Console::puti(SYSTEM_DISK->device_queue_size());
-	//if (SYSTEM_DISK->is_ready() && SYSTEM_DISK->device_queue_size()!=0)
-	if (SYSTEM_DISK->head!=NULL && SYSTEM_DISK->is_ready() )
+
+
+	bool flag1 = SYSTEM_DISK->disk_is_ready();
+	Console::puts("is ready????  "); Console::puti(flag1);Console::puts("\n");
+	
+	if (SYSTEM_DISK->disk_head!=NULL && SYSTEM_DISK->disk_is_ready() )
 
 	{
 
 		
-		Thread* device_thread = SYSTEM_DISK->dequeue();
+		Thread* device_thread = SYSTEM_DISK->disk_dequeue();
 		//Thread* temp = SYSTEM_DISK->DEPENDENT_DISK->dequeue();
 		Console::puts("****************************************************************************************\n");
 
