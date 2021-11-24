@@ -47,7 +47,8 @@
 /* METHODS FOR CLASS   S c h e d u l e r  */
 /*--------------------------------------------------------------------------*/
 
-extern BlockingDisk* SYSTEM_DISK; 
+//extern BlockingDisk* SYSTEM_DISK; 
+extern MirroredDisk* SYSTEM_DISK;
 Scheduler::Scheduler() {
   current_running_thread = NULL;
   flag = false;  
@@ -65,15 +66,17 @@ void Scheduler::yield() {
 	Console::puts("==================================================================================================\n");
 
 
-	bool flag1 = SYSTEM_DISK->disk_is_ready();
+	bool flag1 = SYSTEM_DISK->MASTER_DISK->disk_is_ready();
 	Console::puts("is ready????  "); Console::puti(flag1);Console::puts("\n");
 	
-	if (SYSTEM_DISK->disk_head!=NULL && SYSTEM_DISK->disk_is_ready() )
+	if (SYSTEM_DISK->MASTER_DISK->disk_head!=NULL && SYSTEM_DISK->DEPENDENT_DISK->disk_head!=NULL && SYSTEM_DISK->MASTER_DISK->disk_is_ready()&& SYSTEM_DISK->DEPENDENT_DISK->disk_is_ready() )
 
 	{
 
 		
-		Thread* device_thread = SYSTEM_DISK->disk_dequeue();
+		Thread* device_thread = SYSTEM_DISK->MASTER_DISK->disk_dequeue();
+		Thread* device_thread2 = SYSTEM_DISK->DEPENDENT_DISK->disk_dequeue();
+
 		//Thread* temp = SYSTEM_DISK->DEPENDENT_DISK->dequeue();
 		Console::puts("****************************************************************************************\n");
 
@@ -112,7 +115,7 @@ void Scheduler::resume(Thread * _thread) {
         }*/
 	enqueue(_thread);
 
-/*	if(!Machine::interrupts_enabled())
+/*	if(!Machine::interrupts_enabled()
         {
                 Machine::enable_interrupts();
         }*/

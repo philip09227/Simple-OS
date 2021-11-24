@@ -36,30 +36,26 @@ void MirroredDisk::issue_operation(DISK_OPERATION _op, unsigned long _block_no,D
 
 
 
-void MirroredDisk::mirrored_wait_until_ready()
+void MirroredDisk::wait_until_ready()
 {
-        if(!MASTER_DISK->is_ready() || !DEPENDENT_DISK->is_ready())
+        if(!MASTER_DISK->disk_is_ready() || !DEPENDENT_DISK->disk_is_ready())
         {
                 // devices are not ready therefore, add current thread which is calling I/O operation into device queue
                 Thread * current_thread = Thread::CurrentThread();
-                MASTER_DISK->enqueue(current_thread);
-                queue_size+=1;
-                //SYSTEM_SCHEDULER->resume(current_thread);
-                Console::puts(" device is not ready  then yield \n");
+                MASTER_DISK->disk_enqueue(current_thread);
+		DEPENDENT_DISK->disk_enqueue(current_thread);
                 SYSTEM_SCHEDULER->yield();
 
         }
 }
 
-void MirroredDisk::mirrored_read(unsigned long _block_no, unsigned char * _buf) {
+void MirroredDisk::read(unsigned long _block_no, unsigned char * _buf) {
         // check the status of device whether it is ready for I/O opearation 
-        //wait_until_ready();        
+               
 	issue_operation(DISK_OPERATION::READ,_block_no,DISK_ID::MASTER);
 	issue_operation(DISK_OPERATION::READ,_block_no,DISK_ID::DEPENDENT);
         //SYSTEM_SCHEDULER->flag = true;
-        mirrored_wait_until_ready();
-        //MASTER_DISK->read(_block_no,_buf);
-	//DEPENDENT_DISK->read(_block_no,_buf);
+        wait_until_ready();
 	int i;
         unsigned short tmpw;
         for ( i = 0; i< 256; i++)
@@ -76,26 +72,12 @@ void MirroredDisk::mirrored_read(unsigned long _block_no, unsigned char * _buf) 
 }
 
 
-void MirroredDisk::mirrored_write(unsigned long _block_no, unsigned char * _buf) {
+void MirroredDisk::write(unsigned long _block_no, unsigned char * _buf) {
         //wait_until_ready();
-        //issue_operation(DISK_OPERATION::WRITE , _block_no, DISK_ID::MASTER);
-	//issue_operation(DISK_OPERATION::WRITE , _block_no,DISK_ID::DEPENDENT);
-        //SYSTEM_SCHEDULER->flag = true;
-       // mirrored_wait_until_ready();
+       
 	MASTER_DISK->write(_block_no,_buf);
 	DEPENDENT_DISK->write(_block_no,_buf);
-        /*
-	int i;
-	unsigned short tmpw;
-        for ( i = 0; i< 256; i++)
-        {
-                for( i=0; i<256; i++)
-                {
-                        tmpw = _buf[2*i] | ( _buf[2*i+1] << 8);
-                        Machine::outportw(0x1F0,tmpw);
-                }
-        }*/
         Console::puts("MIRRORED Disk write done\n");
-       // SYSTEM_SCHEDULER->flag = false;
+      
 }
 
