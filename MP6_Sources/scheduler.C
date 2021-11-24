@@ -24,6 +24,7 @@
 #include "simple_keyboard.H"
 #include "simple_timer.H"
 #include "blocking_disk.H"
+#include "mirrored_disk.H"
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */
 /*--------------------------------------------------------------------------*/
@@ -46,10 +47,10 @@
 /* METHODS FOR CLASS   S c h e d u l e r  */
 /*--------------------------------------------------------------------------*/
 
-extern BlockingDisk* SYSTEM_DISK; 
+extern MirroredDisk* SYSTEM_DISK; 
 Scheduler::Scheduler() {
   current_running_thread = NULL;
-     
+  flag = false;  
   head = NULL;
   tail = NULL; 
   Console::puts("Constructed Scheduler.\n");
@@ -61,27 +62,35 @@ void Scheduler::yield() {
 		Machine::disable_interrupts();
 	}*/
 	// check whether IO device is done or not if it's done, dequeu item form device queue and add it to the front of ready queue
-	/*if (SYSTEM_DISK->is_ready())
-	{
-		Thread* device_thread = SYSTEM_DISK->dequeue();
-		queue* new_queue = new queue;
-		new_queue->thread = device_thread;
-		queue* temp = head;
-		new_queue->next = temp;
-		head = new_queue;
-	
-	}*/
-	
-	if(head!=NULL) // first item in ready queue is not NULL
-	{
-		queue* first_queue = head; //first item
-		Thread* next_thread = first_queue->thread; 
-		head = head->next;
-		current_running_thread = next_thread;	
-	        delete first_queue;	
-		//Console::puts("dispatch to next thread\n");
-		Thread::dispatch_to(next_thread);
+	Console::puts("==================================================================================================\n");
+	Console::puti(SYSTEM_DISK->device_queue_size());
+	//if (SYSTEM_DISK->is_ready() && SYSTEM_DISK->device_queue_size()!=0)
+	if (SYSTEM_DISK->head!=NULL && SYSTEM_DISK->is_ready() )
 
+	{
+
+		
+		Thread* device_thread = SYSTEM_DISK->dequeue();
+		//Thread* temp = SYSTEM_DISK->DEPENDENT_DISK->dequeue();
+		Console::puts("****************************************************************************************\n");
+
+		Thread::dispatch_to(device_thread);
+		
+	}
+	else
+	{
+		if(head!=NULL) // first item in ready queue is not NULL
+		{
+			Console::puts("jha\n");
+			queue* first_queue = head; //first item
+			Thread* next_thread = first_queue->thread; 
+			head = head->next;
+			current_running_thread = next_thread;	
+	        	delete first_queue;	
+			Console::puts("dispatch to next thread\n");
+			Thread::dispatch_to(next_thread);
+
+		}	
 	}
 	//Console::puts("dispatch done \n");
 
@@ -185,136 +194,4 @@ void Scheduler::enqueue(Thread* _thread)
 } 
 
 	
-
-RRScheduler::RRScheduler(unsigned EOQ)
-{
-	  current_running_thread = NULL;
-
-  head = NULL;
-  tail = NULL;
-  SimpleTimer* timer = new SimpleTimer(1000/EOQ);
-  InterruptHandler::register_handler(0,timer);
-  Console::puts("Constructed RR Scheduler.\n");
-  
-
-
-
-}
-
-
-void RRScheduler::yield() {
-        if(Machine::interrupts_enabled())
-        {
-                Machine::disable_interrupts();
-        }
-        if(head!=NULL) // first item in ready queue is not NULL
-        {
-                queue* first_queue = head; //first item
-                Thread* next_thread = first_queue->thread;
-                head = head->next;
-                current_running_thread = next_thread;
-                delete first_queue;               
-                Thread::dispatch_to(next_thread);
-
-        }
-        
-
-        if(!Machine::interrupts_enabled())
-        {
-                Machine::enable_interrupts();
-        }
-        Console::puts("RR Yield finished.\n");
-
-}
-
-void RRScheduler::resume(Thread * _thread) {
-        if(Machine::interrupts_enabled())
-        {
-                Machine::disable_interrupts();
-        }
-        enqueue(_thread);
-
-        if(!Machine::interrupts_enabled())
-        {
-                Machine::enable_interrupts();
-        }
-        Console::puts("RR resume done\n");
-}
-
-void RRScheduler::add(Thread * _thread) {
-        if(Machine::interrupts_enabled())
-        {
-                Machine::disable_interrupts();
-        }
-
-        enqueue(_thread);
-
-        if(!Machine::interrupts_enabled())
-        {
-                Machine::enable_interrupts();
-        }
-
-        Console::puts("RR add done\n");
-
-}
-void RRScheduler::terminate(Thread * _thread) {
-        //if thread sucide
-        if(current_running_thread ==_thread)
-        {
-		delete _thread;
-                yield();
-		
-
-        }
-        else
-        {       if( head->thread ==_thread)
-                {
-                        queue * temp= head;	
-			head = head->next;
-			delete _thread;
-			delete temp;
-                }
-                else
-                {
-                        queue* prev = head;
-                        queue* current = head->next;
-                        while(current!=NULL)
-                        {
-                                if(current->thread == _thread)
-                                {
-                                        prev->next = current->next;   
-					delete _thread;
- 					delete current;
-                                        break;
-                                }
-				else
-				{
-                                	current = current->next;
-                                	prev = prev->next;
-				}
-                        }
-                }
-        }
-
-	Console::puts("RR Terminate Scheduler\n");
-
-}
-void RRScheduler::enqueue(Thread* _thread)
-{
-
-        queue* new_queue = new queue;
-        new_queue->thread = _thread;
-        new_queue->next = NULL;
-
-        if(head ==NULL||tail ==NULL)
-        {
-                head = tail = new_queue;
-        }
-        else
-        {
-                tail->next = new_queue;
-                tail = new_queue;
-        }
-        Console::puts("RR enqueue done\n");
-}
 

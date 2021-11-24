@@ -52,8 +52,8 @@
 #endif
 
 #include "simple_disk.H"    /* DISK DEVICE */
-#include "blocking_disk.H"                            /* YOU MAY NEED TO INCLUDE blocking_disk.H
-
+#include "blocking_disk.H"                            /* YOU MAY NEED TO INCLUDE blocking_disk.H*/
+#include "mirrored_disk.H"
 /*--------------------------------------------------------------------------*/
 /* MEMORY MANAGEMENT */
 /*--------------------------------------------------------------------------*/
@@ -110,6 +110,7 @@ Scheduler * SYSTEM_SCHEDULER;
 /* -- A POINTER TO THE SYSTEM DISK */
 //SimpleDisk * SYSTEM_DISK;
 BlockingDisk* SYSTEM_DISK;
+//MirroredDisk* SYSTEM_DISK;
 #define SYSTEM_DISK_SIZE (10 MB)
 
 #define DISK_BLOCK_SIZE ((1 KB) / 2)
@@ -173,21 +174,26 @@ void fun2() {
     unsigned char buf[DISK_BLOCK_SIZE];
     int  read_block  = 1;
     int  write_block = 0;
-
+    unsigned char buffer[5] = {'a','a','a','a','a'};
+    SYSTEM_DISK->write(1,buffer);
     for(int j = 0;; j++) {
 
        Console::puts("FUN 2 IN ITERATION["); Console::puti(j); Console::puts("]\n");
 
        /* -- Read */
        Console::puts("Reading a block from disk...\n");
+       Console::puts("Reading block number "); Console::puti(read_block); Console::puts("\n");
        SYSTEM_DISK->read(read_block, buf);
 
        /* -- Display */
        for (int i = 0; i < DISK_BLOCK_SIZE; i++) {
-           Console::putch(buf[i]);
+           //Console::putch(buf[i]);
+	       Console::puts((const char*)buf);
+	       Console::putch(buf[i]);
        }
 
        Console::puts("Writing a block to disk...\n");
+       Console::puts("Write block number "); Console::puti(write_block); Console::puts("\n");
        SYSTEM_DISK->write(write_block, buf); 
 
        /* -- Move to next block */
@@ -295,7 +301,8 @@ int main() {
     /* -- DISK DEVICE -- */
 
     SYSTEM_DISK = new BlockingDisk(DISK_ID::MASTER, SYSTEM_DISK_SIZE);
-   
+   // SYSTEM_DISK = new MirroredDisk(DISK_ID::MASTER, SYSTEM_DISK_SIZE);
+
     /* NOTE: The timer chip starts periodically firing as 
              soon as we enable interrupts.
              It is important to install a timer handler, as we 

@@ -76,7 +76,7 @@ class Scheduler {
   
 public:
 
-
+   bool flag;
    Scheduler();
    /* Setup the scheduler. This sets up the ready queue, for example.
       If the scheduler implements some sort of round-robin scheme, then the 

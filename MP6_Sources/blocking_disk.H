@@ -46,7 +46,7 @@ public:
   bool is_ready();
   Thread* dequeue();
   void enqueue(Thread* _thread);
-
+  int device_queue_size();	
    BlockingDisk(DISK_ID _disk_id, unsigned int _size); 
    /* Creates a BlockingDisk device with the given size connected to the 
       MASTER or SLAVE slot of the primary ATA controller.
@@ -62,7 +62,7 @@ public:
 
    virtual void write(unsigned long _block_no, unsigned char * _buf);
    /* Writes 512 Bytes from the buffer to the given block on the disk. */
-protected:
+
         virtual void wait_until_ready();
         //device_queue* device_queue;
         device_queue* head;

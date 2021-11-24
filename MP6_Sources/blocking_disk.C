@@ -41,6 +41,10 @@ BlockingDisk::BlockingDisk(DISK_ID _disk_id, unsigned int _size)
 /*--------------------------------------------------------------------------*/
 /* SIMPLE_DISK FUNCTIONS */
 /*--------------------------------------------------------------------------*/
+int BlockingDisk::device_queue_size()
+{
+	return queue_size;
+}
 void BlockingDisk::enqueue(Thread* _thread)
 {
 	device_queue* new_queue = new device_queue;
@@ -84,6 +88,7 @@ Thread* BlockingDisk::dequeue()
 			return return_thread;
 		}
 	}
+	Console::puts(" Device queue dequeue done\n");
 }
 
 			
@@ -96,8 +101,11 @@ void BlockingDisk::wait_until_ready()
 		Thread * current_thread = Thread::CurrentThread();
 		enqueue(current_thread);
 		queue_size+=1;
+		//SYSTEM_SCHEDULER->resume(current_thread);
+		//Console::puts(" device is not ready  then yield \n");	
 		SYSTEM_SCHEDULER->resume(current_thread);
 		SYSTEM_SCHEDULER->yield();
+	
 	}
 }
 
@@ -110,8 +118,9 @@ bool BlockingDisk::is_ready()
 
 void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
 	// check the status of device whether it is ready for I/O opearation 
-	wait_until_ready();
+	//wait_until_ready();
  	SimpleDisk::issue_operation(DISK_OPERATION::READ,_block_no);
+//	SYSTEM_SCHEDULER->flag = true;
 	wait_until_ready();
 	int i;
 	unsigned short tmpw;
@@ -120,19 +129,21 @@ void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
 		tmpw = Machine::inportw(0x1F0);
 		_buf[i*2] = (unsigned char) tmpw;
 		_buf[i*2+1] = (unsigned char) (tmpw >> 8);
-		Console::puts("Block Dish read done\n");
 
 	}
+  	//SYSTEM_SCHEDULER->flag = false;
+  	Console::puts("Block Dish read done\n");
 
-  	
 
 }
 
 
 void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf) {
-  	wait_until_ready();
+  	//wait_until_ready();
 	SimpleDisk::issue_operation(DISK_OPERATION::WRITE , _block_no);
+	//SYSTEM_SCHEDULER->flag = true;
         wait_until_ready();
+
         int i;
         unsigned short tmpw;
         for ( i = 0; i< 256; i++)
@@ -143,6 +154,6 @@ void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf) {
 			Machine::outportw(0x1F0,tmpw);
                 }
         }
-	Console::puts("Block Dish write done\n");
-
+	Console::puts("Block Disk write done\n");
+	//SYSTEM_SCHEDULER->flag = false;
 }
