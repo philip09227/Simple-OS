@@ -289,7 +289,7 @@ int main() {
     SimpleTimer timer(100); /* timer ticks every 10ms. */
     InterruptHandler::register_handler(0, &timer);
     /* The Timer is implemented as an interrupt handler. */
-
+    InterruptHandler::register_handler(14,(InterruptHandler*)SYSTEM_DISK);
 #ifdef _USES_SCHEDULER_
 
     /* -- SCHEDULER -- IF YOU HAVE ONE -- */

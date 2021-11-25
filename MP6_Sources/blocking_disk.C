@@ -94,6 +94,7 @@ Thread* BlockingDisk::disk_dequeue()
 	
 void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
   SimpleDisk::issue_operation(DISK_OPERATION::READ, _block_no);
+  SYSTEM_SCHEDULER->flag = true;
   disk_wait_until_ready();
   int i;
         unsigned short tmpw;
@@ -106,13 +107,14 @@ void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
         }
         //SYSTEM_SCHEDULER->flag = false;
         Console::puts("Block Disk read done\n");
-
+	SYSTEM_SCHEDULER->flag = false;
 
 }
 
 
 void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf) {
-  	SimpleDisk::issue_operation(DISK_OPERATION::WRITE , _block_no);
+	SimpleDisk::issue_operation(DISK_OPERATION::WRITE , _block_no);
+	SYSTEM_SCHEDULER->flag = true;
 	disk_wait_until_ready();
 	int i;
         unsigned short tmpw;
@@ -125,5 +127,13 @@ void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf) {
                 }
         }
         Console::puts("Block Disk write done\n");
-
+	SYSTEM_SCHEDULER->flag = false;
 }
+
+void BlockingDisk::interrupt_handler(REGS *_r)
+{
+	Thread* next_thread = disk_dequeue();
+	SYSTEM_SCHEDULER->resume(next_thread->CurrentThread());
+}
+
+

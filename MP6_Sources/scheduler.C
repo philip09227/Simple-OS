@@ -53,7 +53,8 @@ Scheduler::Scheduler() {
   current_running_thread = NULL;
   flag = false;  
   head = NULL;
-  tail = NULL; 
+  tail = NULL;
+  flag =false; 
   Console::puts("Constructed Scheduler.\n");
 }
 
@@ -77,10 +78,18 @@ void Scheduler::yield() {
 		Thread* device_thread = SYSTEM_DISK->MASTER_DISK->disk_dequeue();
 		Thread* device_thread2 = SYSTEM_DISK->DEPENDENT_DISK->disk_dequeue();
 
-		//Thread* temp = SYSTEM_DISK->DEPENDENT_DISK->dequeue();
+			//Thread* temp = SYSTEM_DISK->DEPENDENT_DISK->dequeue();
 		Console::puts("****************************************************************************************\n");
+                if(flag == false)
+                {
 
-		Thread::dispatch_to(device_thread);
+			Thread::dispatch_to(device_thread);
+		}
+		else
+		{
+			resume(device_thread);
+		}
+
 		
 	}
 	else
