@@ -105,7 +105,7 @@ void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
                 _buf[i*2+1] = (unsigned char) (tmpw >> 8);
 
         }
-        //SYSTEM_SCHEDULER->flag = false;
+        
         Console::puts("Block Disk read done\n");
 	SYSTEM_SCHEDULER->flag = false;
 
